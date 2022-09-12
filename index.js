@@ -120,4 +120,59 @@ server.post("/sign-in", async (req, res) => {
   }
 });
 
+server.get("/cashflow", async (req, res) => {
+  const token = req.headers.authorization?.replace("Bearer ", "");
+
+  if (!token) {
+    return res.status(401);
+  }
+
+  try {
+    // const user = await db.collection("sessions").findOne({ token });
+    // console.log(user.userId);
+    // const transacoes = await db.collection("cashlist").findMany({ userId: "631f5ac54bcca2e58cdcc3b6"}).toArray();
+    // console.log(transacoes);
+    return res.status(200).send("");
+  } catch (error) {
+    res.status(500).send(error);
+  }
+  return res.status(200).send("");
+});
+
+server.post("/cashin", async (req, res) => {
+  const { value, description } = req.body;
+  const token = req.headers.authorization?.replace("Bearer ", "");
+
+  if (!token) {
+    return res.status(401);
+  }
+
+  try {
+    const session = await db.collection("sessions").findOne({ token });
+    await db.collection("cashlist").insertOne({
+      value,
+      description,
+      type: "cashIn",
+      userId: session.userId,
+    });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+  return res.send(200);
+});
+
+server.post("/cashout", async (req, res) => {
+  const token = req.headers.authorization?.replace("Bearer ", "");
+
+  if (!token) {
+    return res.status(401);
+  }
+
+  try {
+  } catch (error) {
+    res.status(500).send(error);
+  }
+  return res.send(200);
+});
+
 server.listen(5000, () => console.log(`App running in port: 5000`));
