@@ -78,8 +78,6 @@ server.post("/sign-up", async (req, res) => {
 server.post("/sign-in", async (req, res) => {
   const { email, password } = req.body;
 
-  console.log("entrei");
-
   const validation = loginScrema.validate(
     {
       email,
@@ -88,26 +86,33 @@ server.post("/sign-in", async (req, res) => {
     { abortEarly: true }
   );
 
-  if (validation.error) return res.status(404).send(validation.error.details);
+  if (validation.error)
+    return res
+      .status(404)
+      .send(validation.error.details.map((erro) => erro.message));
 
   try {
-    console.log(email);
     const user = await db.collection("users").findOne({ email });
-
-    console.log(user);
+    const { name, _id } = user;
 
     if (user) {
       const isValid = bcrypt.compareSync(password, user.password);
 
-      if (!isValid) return res.status(401).send("senha incorreta");
+      if (!isValid) return res.status(401).send("Senha incorreta");
 
       const token = uuidv4();
+
+      db.collection("sessions").deleteOne({ userId: _id });
       db.collection("sessions").insertOne({
         token,
-        userId: user._Id,
+        userId: _id,
       });
 
-      return res.send(token);
+      return res.send({
+        name,
+        token,
+        userId: _id,
+      });
     }
     return res.status(404).send("Usuário não encontrado");
   } catch (error) {
